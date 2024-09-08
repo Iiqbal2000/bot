@@ -1,4 +1,3 @@
-import got from "got";
 import { DEFAULT_HEADERS } from "#utils/http.js";
 import {
   ERR_EMPTY_CODE,
@@ -27,9 +26,9 @@ export async function generateImage(code, lang) {
   }
 
   const linenr = code.split("\n").length;
-  const { body } = await got.post("https://graphene.teknologiumum.com/api", {
+  const response = await fetch("https://graphene.teknologiumum.com/api", {
     headers: DEFAULT_HEADERS,
-    json: {
+    body: JSON.stringify({
       code: code.replace(/^\s+|\s+$/g, ""), // trim extranous whitespace at the end of the code
       lang: lang === "" ? null : lang,
       theme: "github-dark-dimmed",
@@ -40,17 +39,9 @@ export async function generateImage(code, lang) {
         colour: "#A0ADB6",
         radius: 4
       }
-    },
-    responseType: "buffer",
-    timeout: {
-      request: 30_000
-    },
-    retry: {
-      limit: 3,
-      methods: ["POST"],
-      statusCodes: [429, 500, 502, 503, 504]
-    }
+    }),
+    cache: "no-cache"
   });
 
-  return body;
+  return Buffer.from(await response.arrayBuffer());
 }

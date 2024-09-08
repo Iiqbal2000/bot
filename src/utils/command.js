@@ -19,14 +19,59 @@ export const getCommandArgs = (cmd, context) => {
 
   const text = context.message.text;
   
-  if (text.startsWith(`/${cmd}`)) {
-    const [, ...results] = text.split(" ");
-    const result = results
-      .join(" ")
+  if (text.startsWith(`/${cmd}@${context.me}`)) {
+    return text.substring(cmd.length + context.me.length + 2)
       .split("")
-      .filter((t) => !INVALID_CHAR_CODES.includes(t.charCodeAt(0)));
-    return result.length > 0 ? result.join("") : "";
+      .map(char => {
+        if (INVALID_CHAR_CODES.includes(char.charCodeAt(0))) {
+          return "";
+        }
+        
+        return char;
+      })
+      .join("")
+      .trim();
+  }
+  
+  if (text.startsWith(`/${cmd}`)) {
+    return text.substring(cmd.length + 1)
+      .split("")
+      .map(char => {
+        if (INVALID_CHAR_CODES.includes(char.charCodeAt(0))) {
+          return "";
+        }
+        
+        return char;
+      })
+      .join("")
+      .trim();
   }
 
   return context.message.text;
+};
+
+/**
+ * Get command name from given context
+ * @param {import("telegraf").Context} context - The Telegraf context
+ * @return {string} command argument, empty string if context is not a command
+ */
+export const getCommandName = (context) => {
+  if (context === undefined || context === null) {
+    return "";
+  }
+
+  const text = context.message.text;
+  if (!text || !text.startsWith("/")) {
+    return "";
+  }
+
+  const command = text
+    .substring(1)
+    .split(/\s/)
+    .at(0);
+  if (command === undefined) {
+    return "";
+  }
+
+  return command.replace(`@${context.me}`, "");
 };
